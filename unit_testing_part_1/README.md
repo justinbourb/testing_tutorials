@@ -35,5 +35,7 @@ put them in a tests package, separately from the application source code.
 ![image](https://github.com/justinbourb/testing_tutorials/blob/master/unit_testing_part_1/images/pytest_test_coverage_unspecified.JPG)
 - pytest can report in several formats
 ![image](https://github.com/justinbourb/testing_tutorials/blob/master/unit_testing_part_1/images/pytest_test_coverage_report_missing.JPG)
+- #pragma: no cover exlcudes blocks or lines of code from pytest coverage
+![image](https://github.com/justinbourb/testing_tutorials/blob/master/unit_testing_part_1/images/pytest_exclude_sectionJPG.JPG)
 
 
