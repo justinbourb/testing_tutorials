@@ -4,6 +4,8 @@ If you haven't read Miguel's work before, please check him out. His writting sty
 
 ## file structure
 - Each tutorial / blog post has it's own folder.
+- part 1: intro to pytest & pytest-cov using the fizz buzz test
+- part 2: Pytest using a GUI (replicating the game of life)
 
 
 ## testing approach
