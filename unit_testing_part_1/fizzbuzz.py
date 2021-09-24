@@ -32,5 +32,6 @@ def main():
 standard top-level script check so that this function is automatically executed when the script is run directly, 
 but not when it is imported by another script. 
 """
-if __name__ == '__main__':
+# the comment pragma: no cover excludes this code block from the pytest report
+if __name__ == '__main__': # pragma: no cover
 	main()
