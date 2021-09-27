@@ -1,9 +1,13 @@
+import itertools
+import random
 import unittest
-
 import pytest
 from parameterized import parameterized
 
 from life import CellList, Life
+
+# pytest --cov=life --cov-report=term-missing --cov-branch
+
 
 class TestCellList(unittest.TestCase):
     def test_empty(self):
@@ -145,4 +149,53 @@ class TestLife(unittest.TestCase):
             life.toggle(10, 10)
             assert list(life.living_cells()) == []
 
+        """
+        test_advance_cell will start with a target cell (0,0) and will test the surrounding 8 cells
+        (0,0) are represented as 0, surround cells are represented as X
+         X X X            
+         X 0 X
+         X X X
+         A random number of neighbors will be tested to test all possible combinations.
+         
+         1) @parameterized decorator is used to run the same test with multiple inputs
+         2) itertools is used to create a test matrix.  The test will be run on all combinations of True/False
+            and range(9)
+                import itertools  
+                list(itertools.product([True, False], range(9)))  
+                [(True, 0), (True, 1), ..., (False, 0), (False, 1), etc]
+        3) A default and custom rule for birth and survival are also tested
+        
+        This parametrized test is now handling 2 x 2 x 2 x 9 = 72 different tests
+        """
 
+        @parameterized.expand(itertools.product(
+            [[2, 3], [4]],  # two different survival rules
+            [[3], [3, 4]],  # two different birth rules
+            [True, False],  # two possible states for the cell
+            range(0, 9),  # nine number of possible neighbors
+        ))
+        def test_advance_cell(self, survival, birth, alive, num_neighbors):
+            life = Life(survival, birth)
+            if alive:
+                life.toggle(0, 0)
+            neighbors = [(-1, -1), (0, -1), (1, -1),
+                         (-1, 0), (1, 0),
+                         (-1, 1), (0, 1), (1, 1)]
+            for i in range(num_neighbors):
+                n = random.choice(neighbors)
+                neighbors.remove(n)
+                life.toggle(*n)
+
+            new_state = life._advance_cell(0, 0)
+            if alive:
+                # survival rule
+                if num_neighbors in survival:
+                    assert new_state is True
+                else:
+                    assert new_state is False
+            else:
+                # birth rule
+                if num_neighbors in birth:
+                    assert new_state is True
+                else:
+                    assert new_state is False

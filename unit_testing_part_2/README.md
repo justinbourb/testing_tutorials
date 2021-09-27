@@ -24,5 +24,21 @@ Before we get into the specifics of how to test this code, you may want to play 
 ## notes
 - pip install parameterized 
 - parameterized runs the same test with different inputs
- @parameterized.expand([('pattern1.txt',), ('pattern2.txt',)])
- def test_load_life_1_05(self, pattern):
+    - @parameterized.expand([('pattern1.txt',), ('pattern2.txt',)])
+      def test_load_life_1_05(self, pattern):
+- itertools will create test matrix with all combinations of input
+    - import itertools  
+        list(itertools.product([True, False], range(9)))  
+        [(True, 0), (True, 1), ..., (False, 0), (False, 1), etc]
+- Mocking
+    - from unittest import mock
+    - Mocking is the process of creating fake inputs or outputs for 
+    functions.  
+    - This is helpful in testing functions that call other 
+    functions.
+    - unittest mock can also record the number of calls being made
+        - fake.call_args_list()
+    - The mock package provides a few patching functions to inject
+    the fake function into the part of the application we want to test.
+        - @mock.patch.object(Life, '_advance_cell')
+        - @mock.patch.object(testing_object, function_to_mock)        
