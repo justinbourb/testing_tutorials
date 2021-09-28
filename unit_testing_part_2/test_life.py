@@ -1,6 +1,8 @@
 import itertools
 import random
 import unittest
+from unittest import mock
+
 import pytest
 from parameterized import parameterized
 
@@ -199,3 +201,75 @@ class TestLife(unittest.TestCase):
                     assert new_state is True
                 else:
                     assert new_state is False
+
+        """
+        from unittest import mock
+        @mock allows creating fake functions and passing them to unit tests
+        using the .patch.object(test, function_to_mock) format.
+        This allows testing of functions that call other functions in a more reliable manner.
+        Mock also allows tracking the number of times the fake function is called to test
+        program performance.
+        mock_advance_cell.call_count == 24
+        mock_function.call_count
+        
+        test_advance_false uses the following grid:
+        x x x x x                 x x x
+        x O x O x                 x O x 
+        x x x x x                 x x x 
+        """
+        @mock.patch.object(Life, '_advance_cell')
+        def test_advance_false(self, mock_advance_cell):
+            mock_advance_cell.return_value = False
+            life = Life()
+            life.toggle(10, 10)
+            life.toggle(12, 10)
+            life.toggle(20, 20)
+            life.advance()
+
+            # there should be exactly 24 calls to _advance_cell:
+            # - 9 around the (10, 10) cell
+            # - 6 around the (12, 10) cell (3 were already processed by (10, 10))
+            # - 9 around the (20, 20) cell
+            assert mock_advance_cell.call_count == 24
+            assert list(life.living_cells()) == []
+
+        """
+        from unittest import mock
+        @mock allows creating fake functions and passing them to unit tests
+        using the .patch.object(test, function_to_mock) format.
+        This allows testing of functions that call other functions in a more reliable manner.
+        Mock also allows tracking the number of times the fake function is called to test
+        program performance.
+        mock_advance_cell.call_count == 24
+        mock_function.call_count
+
+        test_advance_false uses the following grid:
+        x x x x                 x x x
+        x O O x                 x O x 
+        x x x x                 x x x 
+        """
+        @mock.patch.object(Life, '_advance_cell')
+        def test_advance_true(self, mock_advance_cell):
+            mock_advance_cell.return_value = True
+            life = Life()
+            life.toggle(10, 10)
+            life.toggle(11, 10)
+            life.toggle(20, 20)
+            life.advance()
+
+            # there should be exactly 24 calls to _advance_cell:
+            # - 9 around the (10, 10) cell
+            # - 3 around the (11, 10) cell (3 were already processed by (10, 10))
+            # - 9 around the (20, 20) cell
+            assert mock_advance_cell.call_count == 21
+
+            # since the mocked advance_cell returns True in all cases, all 24
+            # cells must be alive
+            assert set(life.living_cells()) == {
+                (9, 9), (10, 9), (11, 9), (12, 9),
+                (9, 10), (10, 10), (11, 10), (12, 10),
+                (9, 11), (10, 11), (11, 11), (12, 11),
+                (19, 19), (20, 19), (21, 19),
+                (19, 20), (20, 20), (21, 20),
+                (19, 21), (20, 21), (21, 21),
+            }
