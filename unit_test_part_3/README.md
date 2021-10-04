@@ -23,6 +23,8 @@ Pytest-cov will be used to check test coverage, it reports lines which were not 
 - pip install pytest-cov
 
 ## Starting up the app
+- (venv) $ flask db init
+- (venv) $ flask db migrate -m "your message"
 - (venv) $ flask db upgrade
 - (venv) $ flask run
 
@@ -59,3 +61,16 @@ testing.
     - WGSI provides the Werkzerug package for testing
     - AGSI provides async-asgi-testclient for testing 
 
+- Testing API Servers
+    - In Single-Page Applications (SPA) the server takes on a smaller role centered around storage, while the client
+    implements most of the application logic.  In this model the server is called an API server.  Testing API is easier
+    because JSON is easier to parse than HTML
+   
+- Token Authentication
+    - The user registration endpoint is the only API entry point that is open to all users.
+    Every other endpoint requires the user to authenticate.  Apis in general use an authentication
+    mechanism that is different than traditional web applications.  Instead of a session-based authentication,
+    APIs prefer a stateless mechanism based on tokens.
+    - The microblog application requires the client to send a POST request to /api/tokens to request a token.
+    The request must include a basic authentication header with a username and password of the user requesting the
+    token.  The returned token can then be passed as a bearer token header when making requests to other endpoints.

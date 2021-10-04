@@ -9,6 +9,31 @@ os.environ['DATABASE_URL'] = 'sqlite://'  # use an in-memory database for tests
 
 class TestWebApp(unittest.TestCase):
 
+	def get_api_token(self):
+		"""
+		Token Authentication
+		The user registration endpoint is the only API entry point that is open to all users.
+		Every other endpoint requires the user to authenticate.  Apis in general use an authentication
+		mechanism that is different than traditional web applications.  Instead of a session-based authentication,
+		APIs prefer a stateless mechanism based on tokens.
+
+		The microblog application requires the client to send a POST request to /api/tokens to request a token.
+		The request must include a basic authentication header with a username and password of the user requesting the
+		token.  The returned token can then be passed as a bearer token header when making requests to other endpoints.
+		"""
+		response = self.client.post('/api/tokens', auth=('susan', 'foo'))
+		return response.json['token']
+
+	def login(self):
+		"""
+		helper method
+		login with our fake user for testing purposes
+		"""
+		self.client.post('/auth/login', data={
+			'username': 'susan',
+			'password': 'foo',
+		})
+
 	def populate_db(self):
 		"""
 		helper method
@@ -30,15 +55,7 @@ class TestWebApp(unittest.TestCase):
 		db.session.add(user)
 		db.session.commit()
 
-	def login(self):
-		"""
-		helper method
-		login with our fake user for testing purposes
-		"""
-		self.client.post('/auth/login', data={
-			'username': 'susan',
-			'password': 'foo',
-		})
+
 	def setUp(self):
 		"""
 		create an instance of the app
@@ -136,12 +153,15 @@ class TestWebApp(unittest.TestCase):
 			'password2': 'bar',
 		})
 		assert response.status_code == 200
-		html = response.get_data(as_Text=True)
+		html = response.get_data(as_text=True)
 		assert 'Field must be equal to password.' in html
 
 	def test_write_post(self):
 		"""
 		This test will test users posting to the blog.
+		Expects a popup on successful submission of a blog post
+		Expects the url to match the user
+		Expects "user said" in html
 		"""
 		self.login()
 		response = self.client.post('/', data={
@@ -154,3 +174,53 @@ class TestWebApp(unittest.TestCase):
 		assert re.search(r'span class="user_popup">\s*'
 		                 r'<a href="/user/susan">\s*'
 		                 r'susan\s*</a>\s*</span>\s*said', html) is not None
+
+	def test_public_api_register_user(self):
+		"""
+		- Testing API Servers
+	    - In Single-Page Applications (SPA) the server takes on a smaller role centered around storage, while the client
+	    implements most of the application logic.  In this model the server is called an API server.  Testing API is
+	    easier because JSON is easier to parse than HTML.
+		"""
+		response = self.client.post('/api/users', json={
+			'username': 'bob',
+			'email': 'bob@example.com',
+			'password': 'bar'
+		})
+		assert response.status_code == 201
+
+		# make sure the user is in the database
+		user = User.query.filter_by(username='bob').first()
+		assert User is not None
+		assert user.email == 'bob@example.com'
+
+	def test_auth_api_get_users(self):
+		"""
+		This test uses a token to make a request to get the complete list of users.
+		"""
+		token = self.get_api_token()
+		print(token)
+		response = self.client.get(
+			'/api/users', headers={'Authorization': f'Bearer {token}'})
+		assert response.status_code == 200
+		assert len(response.json['items']) == 1
+		assert response.json['items'][0]['username'] == 'susan'
+
+	def test_auth_api_token_error(self):
+		"""
+		This test passes a wrong token to test api token_errors
+		"""
+		token = 'wrong token'
+		response = self.client.get(
+			'/api/users', headers={'Authorization': f'Bearer {token}'})
+		assert response.status_code == 401
+		assert response.json == {
+			'error': 'Unauthorized'
+		}
+
+	def test_auth_api_auth_error(self):
+		response = self.client.post('/api/tokens', auth=('susan', 'bar'))
+		assert response.status_code == 401
+		assert response.json == {
+			'error': 'Unauthorized'
+		}
