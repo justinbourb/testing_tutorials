@@ -5,6 +5,7 @@ from app.models import User
 import os
 import re
 
+# this line does not seem to work
 os.environ['DATABASE_URL'] = 'sqlite://'  # use an in-memory database for tests
 
 class TestWebApp(unittest.TestCase):
@@ -66,7 +67,8 @@ class TestWebApp(unittest.TestCase):
 		setup a test client through Flask
 		"""
 		self.app = create_app()
-		self.app.config['WTF_CSRF_ENABLED'] = False # no CSRF during tests
+		self.app.config['WTF_CSRF_ENABLED'] = False  # no CSRF during tests
+		self.app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite://"  # use an in memory (fake) db for testing
 		self.appctx = self.app.app_context()
 		self.appctx.push()
 		db.create_all()
